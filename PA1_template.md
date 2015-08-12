@@ -6,26 +6,10 @@
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-## 
-## The following object is masked from 'package:stats':
-## 
-##     filter
-## 
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 library(lubridate)
 library(lattice)
 
-activity <- read.csv("~/RCursera/RepData_PeerAssessment1-master/activity.csv")
+activity <- read.csv("./RepData_PeerAssessment1-master/activity.csv")
 activity$date <- as.Date(activity$date)
 ```
 ## What is mean total number of steps taken per day?
@@ -37,15 +21,15 @@ Calculate the total number of steps taken per day
 day <- 
   activity %>%
   group_by(date) %>%
-  summarize(total = sum (steps))
+  summarize(totalsteps = sum (steps))
 ```
 
 Make a histogram of the total number of steps taken each day
 
 
 ```r
-hist(day$total, col = "green", breaks = 10)
-rug(day$total)
+with(day, hist(totalsteps, col = "green", breaks = 10, main = "Histogram of total steps", xlab = "Total steps"))
+rug(day$totalsteps)
 ```
 
 ![](./PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
@@ -54,7 +38,7 @@ Calculate and report the mean and median of the total number of steps taken per 
 
 
 ```r
-mean(day$total, na.rm = T)
+mean(day$totalsteps, na.rm = T)
 ```
 
 ```
@@ -62,7 +46,7 @@ mean(day$total, na.rm = T)
 ```
 
 ```r
-median(day$total, na.rm = T)
+median(day$totalsteps, na.rm = T)
 ```
 
 ```
@@ -83,7 +67,7 @@ average <-
 
 
 ```r
-plot(average$interval, average$average, type = "l")
+with(average, plot(interval, average, type = "l"))
 ```
 
 ![](./PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
@@ -113,15 +97,20 @@ length(which(row_NA==TRUE))
 ```
 ## [1] 2304
 ```
-Filling in all of the missing values
+
+Filling in all of the missing values.
+The missing values are replaced by the mean values calculated before
 
 
 ```r
 na_activity <- filter(activity, is.na(steps))
-new_na_activity <- merge(average, na_activity, by = "interval")
-new_na_activity <- select(new_na_activity, average, date, interval)
-new_na_activity <- rename(new_na_activity, steps = average)
+new_na_activity <-
+  average %>%
+  merge(na_activity, by = "interval") %>%
+  select(average, date, interval) %>%
+  rename(steps = average)
 ```
+
 Create a new dataset that is equal to the original dataset but with the missing data filled in
 
 
@@ -130,7 +119,7 @@ new_activity <- bind_rows(filter(activity, !is.na(steps)), new_na_activity)
 new_activity <- arrange(new_activity, date, interval)
 ```
 
-Calculated histogram
+Calculate histogram
 
 
 ```r
@@ -141,12 +130,13 @@ new_day <-
 ```
 
 ```r
-hist(new_day$total, col = "green", breaks = 10)
+hist(new_day$total, col = "green", breaks = 10, main = "Histogram of total steps", xlab = "Total steps")
 rug(new_day$total)
 ```
 
 ![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
-Calculated mean and median
+
+Calculate mean and median
 
 
 ```r
@@ -164,6 +154,13 @@ median(new_day$total)
 ```
 ## [1] 10766.19
 ```
+#### Do these values differ from the estimates from the first part of the assignment?
+
+The difference is minimal to calculate the mean and the median due to the method used to replace the missing values
+
+#### What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+There are more days with a maximum number of steps. When replacing the unknown data we have added steps to the total
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
