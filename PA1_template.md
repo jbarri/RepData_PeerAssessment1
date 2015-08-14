@@ -149,7 +149,7 @@ Calculate histogram
 new_day <- 
   new_activity %>%
   group_by(date) %>%
-  summarize(total = sum (steps, na.rm = any(!is.na(steps))))
+  summarize(total = sum (steps))
 ```
 
 ```r
