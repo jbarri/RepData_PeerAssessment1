@@ -2,16 +2,21 @@
 
 
 ##Loading and preprocessing the data
+Download the data from the github repository and copy the file `activity.csv` in your default working directory
 
 
 ```r
 library(dplyr)
 library(lubridate)
 library(lattice)
+```
 
-activity <- read.csv("./RepData_PeerAssessment1-master/activity.csv")
+
+```r
+activity <- read.csv("./activity.csv")
 activity$date <- as.Date(activity$date)
 ```
+
 ## What is mean total number of steps taken per day?
 
 Calculate the total number of steps taken per day
@@ -21,24 +26,42 @@ Calculate the total number of steps taken per day
 day <- 
   activity %>%
   group_by(date) %>%
-  summarize(totalsteps = sum (steps))
+  summarize(total = sum (steps, na.rm = any(!is.na(steps))))
+```
+
+With `sum (steps, na.rm = any(!is.na(steps)))` I want to remove NA and compute where there are partial data while returning NA instead of zero when there are no data at all
+
+
+```r
+summary(day)
+```
+
+```
+##       date                total      
+##  Min.   :2012-10-01   Min.   :   41  
+##  1st Qu.:2012-10-16   1st Qu.: 8841  
+##  Median :2012-10-31   Median :10765  
+##  Mean   :2012-10-31   Mean   :10766  
+##  3rd Qu.:2012-11-15   3rd Qu.:13294  
+##  Max.   :2012-11-30   Max.   :21194  
+##                       NA's   :8
 ```
 
 Make a histogram of the total number of steps taken each day
 
 
 ```r
-with(day, hist(totalsteps, col = "green", breaks = 10, main = "Histogram of total steps", xlab = "Total steps"))
-rug(day$totalsteps)
+with(day, hist(total, col = "green", breaks = 10, main = "Histogram of total steps taken each day", xlab = "Total steps"))
+rug(day$total)
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+![](./PA1_template_files/figure-html/hist1-1.png) 
 
 Calculate and report the mean and median of the total number of steps taken per day
 
 
 ```r
-mean(day$totalsteps, na.rm = T)
+mean(day$total, na.rm = T)
 ```
 
 ```
@@ -46,7 +69,7 @@ mean(day$totalsteps, na.rm = T)
 ```
 
 ```r
-median(day$totalsteps, na.rm = T)
+median(day$total, na.rm = T)
 ```
 
 ```
@@ -67,10 +90,10 @@ average <-
 
 
 ```r
-with(average, plot(interval, average, type = "l"))
+with(average, plot(interval, average, type = "l", col = "blue", main = "Average daily activity pattern"))
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+![](./PA1_template_files/figure-html/average-1.png) 
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
@@ -126,15 +149,15 @@ Calculate histogram
 new_day <- 
   new_activity %>%
   group_by(date) %>%
-  summarize(total = sum (steps))
+  summarize(total = sum (steps, na.rm = any(!is.na(steps))))
 ```
 
 ```r
-hist(new_day$total, col = "green", breaks = 10, main = "Histogram of total steps", xlab = "Total steps")
+hist(new_day$total, col = "green", breaks = 10, main = "Histogram of total steps taken each day", xlab = "Total steps")
 rug(new_day$total)
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+![](./PA1_template_files/figure-html/hist2-1.png) 
 
 Calculate mean and median
 
@@ -154,13 +177,23 @@ median(new_day$total)
 ```
 ## [1] 10766.19
 ```
+
 #### Do these values differ from the estimates from the first part of the assignment?
 
-The difference is minimal to calculate the mean and the median due to the method used to replace the missing values
+There is not difference in the mean and the difference in the median is minimal due to the method used to replace the missing values
 
 #### What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-There are more days with a maximum number of steps. When replacing the unknown data we have added steps to the total
+There are more days with more than 10000 steps. When replacing the unknown data we have added steps to the total. We can see it in the next plot.
+
+
+```r
+par(mfrow = c(1,2))
+with(day, plot(date, total, type = "l", col = "blue", main = "Whith NA", ylab  = "Total steps"))
+with(new_day, plot(date, total, type = "l", col = "blue", main = "Whith NA filled in", ylab = "Total steps"))
+```
+
+![](./PA1_template_files/figure-html/comparation-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -191,5 +224,5 @@ week <- bind_rows(weekend, weekday)
 xyplot(average ~ interval | week, data = week, layout = c(1, 2), type = "l")
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
+![](./PA1_template_files/figure-html/week-1.png) 
 
